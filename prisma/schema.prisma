@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING                // created, no proof uploaded
+  WAITING_CONFIRMATION   // proof uploaded, waiting admin verify
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+enum ShippingType {
+  DELIVERY
+  PICKUP
+}
+
+enum District {
+  LOWOKWARU
+  KLOJEN
+  BLIMBING
+  SUKUN
+  KEDUNGKANDANG
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders       Order[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products  Product[]
+
+  @@index([name])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String   @unique
+  description String?
+  basePrice   Int      // rupiah
+  imageUrl    String?  // 1 image per product (Cloudinary secure_url)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  skus        ProductSku[]
+
+  @@index([categoryId])
+  @@index([basePrice])
+}
+
+model ProductSku {
+  id        String   @id @default(cuid())
+  productId String
+  color     String
+  size      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventory Inventory?
+  orderItems OrderItem[]
+
+  @@unique([productId, color, size])
+  @@index([productId])
+  @@index([color])
+  @@index([size])
+}
+
+model Inventory {
+  skuId     String   @id
+  stock     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  sku       ProductSku @relation(fields: [skuId], references: [id], onDelete: Cascade)
+}
+
+model DistrictShippingRate {
+  district District @id
+  fee      Int
+  isActive Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                  String      @id @default(cuid())
+  userId              String
+  status              OrderStatus @default(PENDING)
+
+  shippingType        ShippingType
+  district            District?
+  shippingAddress     String?
+  shippingFee         Int         @default(0)
+
+  subtotal            Int         @default(0)
+  total               Int         @default(0)
+
+  paymentMethod       String      // e.g. "MANUAL_TRANSFER"
+  paymentProofUrl     String?
+  paymentProofUploadedAt DateTime?
+  paidAt              DateTime?
+
+  paymentExpiresAt    DateTime
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  user                User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items               OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentExpiresAt])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  skuId     String
+  quantity  Int
+  price     Int      // snapshot price at purchase time (Product.basePrice)
+  createdAt DateTime @default(now())
+
+  order     Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sku       ProductSku @relation(fields: [skuId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, skuId])
+  @@index([orderId])
+  @@index([skuId])
+}
