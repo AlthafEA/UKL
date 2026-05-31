@@ -151,9 +151,7 @@ export class ProductService {
     await this.ensureProduct(productId);
     if (!file) throw new BadRequestException('File is required');
 
-    const uploaded = await this.cloudinary.uploadImage(file, {
-      folder: `products/${productId}`,
-    });
+    const uploaded = await this.cloudinary.uploadImage(file as any, { folder: `products/${productId}`, });
 
     return this.prisma.product.update({
       where: { id: productId },

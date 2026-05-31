@@ -1,51 +1,14 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { v2 as cloudinary, type UploadApiOptions, type UploadApiResponse } from 'cloudinary';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary';
 import { Readable } from 'node:stream';
-import { CreateCloudinaryDto } from './dto/create-cloudinary.dto';
-import { UpdateCloudinaryDto } from './dto/update-cloudinary.dto';
-
-type UploadedFile = {
-  buffer?: Buffer;
-  path?: string;
-};
+import { configureCloudinary } from '../helper/cloudinary.config';
 
 @Injectable()
 export class CloudinaryService {
-  constructor() {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-      secure: true,
-    });
-  }
-
-  create(createCloudinaryDto: CreateCloudinaryDto) {
-    return 'This action adds a new cloudinary';
-  }
-
-  findAll() {
-    return `This action returns all cloudinary`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} cloudinary`;
-  }
-
-  update(id: number, updateCloudinaryDto: UpdateCloudinaryDto) {
-    return `This action updates a #${id} cloudinary`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} cloudinary`;
-  }
+  private readonly cloudinary = configureCloudinary();
 
   async uploadImage(
-    file: UploadedFile,
+    file: Express.Multer.File,
     options: UploadApiOptions = {},
   ): Promise<UploadApiResponse> {
     if (!file) throw new BadRequestException('File is required');
@@ -55,29 +18,27 @@ export class CloudinaryService {
       ...options,
     };
 
-    const buffer = file.buffer;
-
-    if (buffer && buffer.length) {
+    if (file.buffer && file.buffer.length) {
       return new Promise<UploadApiResponse>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
+        const uploadStream = this.cloudinary.uploader.upload_stream(
           uploadOptions,
           (error, result) => {
             if (error || !result) {
               reject(error ?? new InternalServerErrorException('Cloudinary upload failed'));
               return;
             }
-
             resolve(result);
           },
         );
 
-        Readable.from(buffer).pipe(uploadStream);
+        Readable.from(file.buffer).pipe(uploadStream);
       });
     }
 
-    const diskFile = file as UploadedFile & { path?: string };
-    if (diskFile.path) {
-      return cloudinary.uploader.upload(diskFile.path, uploadOptions);
+    // diskStorage case
+    const anyFile = file as Express.Multer.File & { path?: string };
+    if (anyFile.path) {
+      return this.cloudinary.uploader.upload(anyFile.path, uploadOptions);
     }
 
     throw new BadRequestException('Uploaded file is missing buffer or path');
