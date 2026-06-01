@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Role } from '@prisma/client/wasm';
 
 @Injectable()
 export class AuthService {
@@ -11,8 +12,29 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
   ) { }
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  async register(createAuthDto: CreateAuthDto) {
+    const existing = await this.prisma.user.findUnique({ where: { email: createAuthDto.email } });
+    if (existing) throw new BadRequestException('Email already registered');
+
+    const passwordHash = await bcrypt.hash(createAuthDto.password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: createAuthDto.email,
+        passwordHash,
+        role: Role.CUSTOMER, // default
+      },
+      select: { id: true, email: true, role: true },
+    });
+
+    // optional: langsung kasih token setelah register
+    // const access_token = await this.jwt.signAsync({
+    //   sub: user.id,
+    //   email: user.email,
+    //   role: user.role,
+    // });
+
+    return { user,};
   }
 
   async login(loginDto: CreateAuthDto) {
@@ -38,7 +60,6 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
         role: user.role,
       },
     };
