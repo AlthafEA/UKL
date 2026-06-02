@@ -6,7 +6,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreateCategoryDto) {
     try {
@@ -76,5 +76,30 @@ export class CategoryService {
     } catch (e: any) {
       throw new BadRequestException('Failed to update category. Slug might already exist.');
     }
+  }
+
+  async remove(id: string) {
+    try {
+      const findCategory = await this.prisma.category.findUnique({
+        where: { id }
+      })
+      if (!findCategory) {
+        return {
+          success: false,
+          message: 'Category does not exist',
+          data: null
+        }
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to delete category',
+        data: null
+      }
+    }
+    return await this.prisma.category.delete({
+      where: { id }
+    });
   }
 }

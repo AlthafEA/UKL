@@ -298,4 +298,29 @@ export class OrderService {
 
     return map[current]?.includes(next) ?? false;
   }
+
+  async remove(id: string) {
+    try {
+      const findOrder = await this.prisma.order.findUnique({
+        where: { id }
+      })
+      if (!findOrder) {
+        return {
+          success: false,
+          message: 'Order does not exist',
+          data: null
+        }
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to delete order',
+        data: null
+      }
+    }
+    return await this.prisma.order.delete({
+      where: { id }
+    });
+  }
 }

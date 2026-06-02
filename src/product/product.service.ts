@@ -15,7 +15,7 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) {}
+  ) { }
 
   // ---------- PUBLIC ----------
   async list(query: QueryProductDto) {
@@ -239,5 +239,30 @@ export class ProductService {
     const s = await this.prisma.productSku.findUnique({ where: { id: skuId } });
     if (!s) throw new NotFoundException('SKU not found');
     return s;
+  }
+
+  async remove(id: string) {
+    try {
+      const findProduct = await this.prisma.product.findUnique({
+        where: { id }
+      })
+      if (!findProduct) {
+        return {
+          success: false,
+          message: 'Product does not exist',
+          data: null
+        }
+      }
+      
+      return await this.prisma.product.delete({
+        where: { id }
+      });
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to delete product',
+        data: null
+      }
+    }
   }
 }

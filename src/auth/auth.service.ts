@@ -22,7 +22,7 @@ export class AuthService {
       data: {
         email: createAuthDto.email,
         passwordHash,
-        role: Role.CUSTOMER, // default
+        role: Role.ADMIN, // default
       },
       select: { id: true, email: true, role: true },
     });

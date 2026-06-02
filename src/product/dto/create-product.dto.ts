@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsInt,
   IsNotEmpty,
@@ -14,21 +15,38 @@ export class CreateProductDto {
    * - create product
    * - create sku
    */
+  @ApiProperty({
+    description: 'Tipe aksi: PRODUCT untuk buat produk, SKU untuk buat varian',
+    enum: ['PRODUCT', 'SKU'],
+    example: 'PRODUCT',
+  })
   @IsString()
   @IsNotEmpty()
   type!: 'PRODUCT' | 'SKU';
 
   // ========== PRODUCT ==========
+  @ApiPropertyOptional({
+    description: 'ID kategori (wajib jika type=PRODUCT)',
+    example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+  })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
   @IsNotEmpty()
   categoryId!: string;
 
+  @ApiPropertyOptional({
+    description: 'Nama produk (wajib jika type=PRODUCT)',
+    example: 'Kaos Polos Hitam',
+  })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
   @IsNotEmpty()
   name!: string;
 
+  @ApiPropertyOptional({
+    description: 'Slug URL-friendly (wajib jika type=PRODUCT)',
+    example: 'kaos-polos-hitam',
+  })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
   @IsNotEmpty()
@@ -37,42 +55,76 @@ export class CreateProductDto {
   })
   slug!: string;
 
+  @ApiPropertyOptional({
+    description: 'Deskripsi produk',
+    example: 'Kaos polos bahan cotton combed 30s',
+  })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
   @IsOptional()
   description?: string;
 
+  @ApiPropertyOptional({
+    description: 'Harga dasar dalam Rupiah (wajib jika type=PRODUCT)',
+    example: 85000,
+    minimum: 0,
+  })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsInt()
   @Min(0)
   basePrice!: number;
 
+  @ApiPropertyOptional({
+    description: 'URL gambar produk (opsional, bisa via upload endpoint)',
+  })
   // imageUrl tidak wajib di create karena bisa via upload endpoint
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
   @IsOptional()
   imageUrl?: string;
 
+  @ApiPropertyOptional({
+    description: 'Status aktif produk',
+    example: true,
+    default: true,
+  })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsOptional()
   isActive?: boolean;
 
   // ========== SKU ==========
+  @ApiPropertyOptional({
+    description: 'ID produk induk (wajib jika type=SKU)',
+    example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+  })
   @ValidateIf((o) => o.type === 'SKU')
   @IsString()
   @IsNotEmpty()
   productId!: string;
 
+  @ApiPropertyOptional({
+    description: 'Warna varian (wajib jika type=SKU)',
+    example: 'Hitam',
+  })
   @ValidateIf((o) => o.type === 'SKU')
   @IsString()
   @IsNotEmpty()
   color!: string;
 
+  @ApiPropertyOptional({
+    description: 'Ukuran varian (wajib jika type=SKU)',
+    example: 'L',
+  })
   @ValidateIf((o) => o.type === 'SKU')
   @IsString()
   @IsNotEmpty()
   size!: string;
 
+  @ApiPropertyOptional({
+    description: 'Stok awal (opsional, default 0)',
+    example: 50,
+    minimum: 0,
+  })
   @ValidateIf((o) => o.type === 'SKU')
   @IsInt()
   @Min(0)

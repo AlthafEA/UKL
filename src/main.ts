@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
+  app.enableCors();
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -17,9 +18,27 @@ async function bootstrap() {
   );
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('UKL Backend Starter')
-    .setDescription('Starter project NestJS + Prisma + MySQL')
+    .setTitle('UKL Backend API')
+    .setDescription(
+      'REST API untuk aplikasi e-commerce UKL. ' +
+      'Dibangun dengan NestJS + Prisma + MySQL. ' +
+      'Gunakan endpoint `/auth/login` untuk mendapatkan JWT token, ' +
+      'lalu klik tombol **Authorize** di atas dan masukkan token.',
+    )
     .setVersion('1.0.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Masukkan JWT token yang didapat dari endpoint login',
+      },
+      'JWT-auth',
+    )
+    .addTag('Auth', 'Registrasi & Login pengguna')
+    .addTag('Categories', 'Manajemen kategori produk')
+    .addTag('Products', 'Manajemen produk, SKU, dan inventory')
+    .addTag('Orders', 'Checkout, pembayaran, dan manajemen pesanan')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
@@ -27,5 +46,8 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
+  console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(`📖 Swagger docs: http://localhost:${port}/docs`);
 }
 bootstrap();
+

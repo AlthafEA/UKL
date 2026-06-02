@@ -14,7 +14,7 @@ export class CloudinaryService {
     if (!file) throw new BadRequestException('File is required');
 
     const uploadOptions: UploadApiOptions = {
-      resource_type: 'image',
+      resource_type: 'auto',
       ...options,
     };
 
@@ -24,9 +24,28 @@ export class CloudinaryService {
           uploadOptions,
           (error, result) => {
             if (error || !result) {
-              reject(error ?? new InternalServerErrorException('Cloudinary upload failed'));
+              console.log('Cloudinary error (direct):', error);
+              console.log('Cloudinary error keys:', error ? Object.keys(error) : null);
+
+              // Kadang detail ada di response/headers
+              const anyErr = error as any;
+              console.log('Cloudinary error extra:', {
+                name: anyErr?.name,
+                message: anyErr?.message,
+                http_code: anyErr?.http_code,
+                statusCode: anyErr?.statusCode,
+                error: anyErr?.error,
+                response: anyErr?.response,
+                headers: anyErr?.response?.headers,
+                xCldError:
+                  anyErr?.response?.headers?.['x-cld-error'] ??
+                  anyErr?.response?.headers?.['X-Cld-Error'],
+              });
+
+              reject(error);
               return;
             }
+
             resolve(result);
           },
         );
