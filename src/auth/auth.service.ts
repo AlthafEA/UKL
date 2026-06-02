@@ -12,7 +12,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
   ) { }
-  async register(createAuthDto: CreateAuthDto) {
+  async registerAdmin(createAuthDto: CreateAuthDto) {
     const existing = await this.prisma.user.findUnique({ where: { email: createAuthDto.email } });
     if (existing) throw new BadRequestException('Email already registered');
 
@@ -23,6 +23,31 @@ export class AuthService {
         email: createAuthDto.email,
         passwordHash,
         role: Role.ADMIN, // default
+      },
+      select: { id: true, email: true, role: true },
+    });
+
+    // optional: langsung kasih token setelah register
+    // const access_token = await this.jwt.signAsync({
+    //   sub: user.id,
+    //   email: user.email,
+    //   role: user.role,
+    // });
+
+    return { user,};
+  }
+
+  async registerCustomer(createAuthDto: CreateAuthDto) {
+    const existing = await this.prisma.user.findUnique({ where: { email: createAuthDto.email } });
+    if (existing) throw new BadRequestException('Email already registered');
+
+    const passwordHash = await bcrypt.hash(createAuthDto.password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: createAuthDto.email,
+        passwordHash,
+        role: Role.CUSTOMER, // default
       },
       select: { id: true, email: true, role: true },
     });

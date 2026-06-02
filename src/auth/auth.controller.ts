@@ -39,8 +39,35 @@ export class AuthController {
     },
   })
   @ApiBadRequestResponse({ description: 'Email sudah terdaftar atau validasi gagal' })
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.register(createAuthDto);
+  @Post('register/admin')
+  createAdmin(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.registerAdmin(createAuthDto);
+  }
+
+  @Post('register/customer')
+  @ApiOperation({
+    summary: 'Registrasi pelanggan baru',
+    description: 'Membuat akun pelanggan baru dengan email dan password. Email harus unik.',
+  })
+  @ApiCreatedResponse({
+    description: 'Registrasi berhasil',
+    schema: {
+      type: 'object',
+      properties: {
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx' },
+            email: { type: 'string', example: 'user@example.com' },
+            role: { type: 'string', example: 'CUSTOMER' },
+          },
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Email sudah terdaftar atau validasi gagal' })
+  createCustomer(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.registerCustomer(createAuthDto);
   }
 
   @Post('login')
