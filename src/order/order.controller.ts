@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   Req,
   Delete,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -25,6 +26,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiProduces,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -35,11 +37,16 @@ import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { RolesGuard } from '../helper/roles-guard';
 import { Roles } from '../helper/roles-decorator'; // jika belum ada, bilang
+import { ReceiptService } from './receipt.service';
+import express from 'express';
 
 @ApiTags('Orders')
 @Controller()
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly receiptService: ReceiptService
+  ) { }
 
   // -------- CUSTOMER --------
   @Post('checkout')
@@ -174,6 +181,29 @@ export class OrderController {
     @Body() dto: UpdateOrderDto,
   ) {
     return this.orderService.uploadPaymentProof(req.user.id, id, file, dto);
+  }
+
+  @Get('/orders/:id/receipt')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'CUSTOMER')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Download struk pembelian (PDF)' })
+  @ApiParam({ name: 'id', description: 'ID order' })
+  @ApiProduces('application/pdf')
+  async downloadReceipt(
+    @Param('id') id: string,
+    @Req() req,
+    @Res() res: express.Response, // pastikan type-nya dari express
+  ) {
+    const buffer = await this.receiptService.generateReceipt(id, req.user.id, req.user.role);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="struk-${id}.pdf"`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
   }
 
   // -------- ADMIN --------
