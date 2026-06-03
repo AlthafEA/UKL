@@ -289,7 +289,7 @@ export class OrderService {
     if (current === next) return true;
 
     const map: Record<OrderStatus, OrderStatus[]> = {
-      PENDING: [OrderStatus.CANCELLED, OrderStatus.PAID],
+      PENDING: [OrderStatus.CANCELLED],
       WAITING_CONFIRMATION: [OrderStatus.PAID, OrderStatus.CANCELLED],
       PAID: [OrderStatus.SHIPPED],
       SHIPPED: [],
