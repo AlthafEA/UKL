@@ -107,7 +107,7 @@ model DistrictShippingRate {
   district District @id
   fee      Int
   isActive Boolean  @default(true)
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @default(now())
 }
 
 model Order {
