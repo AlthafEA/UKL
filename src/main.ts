@@ -9,7 +9,7 @@ async function bootstrap() {
 
   // main.ts
   app.enableCors({
-    origin: '*',
+    origin: 'https://ukl-4-fe.vercel.app, http://localhost:3000', // <-- Ganti dengan URL frontend Anda
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'], // ← Explicit headers

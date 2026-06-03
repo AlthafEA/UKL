@@ -243,7 +243,12 @@ export class OrderController {
   @ApiNotFoundResponse({ description: 'Pesanan tidak ditemukan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Tidak memiliki akses' })
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(id);
+
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'CUSTOMER')
+  @ApiBearerAuth('JWT-auth')
+  remove(@Param('id') id: string, @Req() req) {
+    return this.orderService.remove(id, req.user.id, req.user.role);
   }
 }

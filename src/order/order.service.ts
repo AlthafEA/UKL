@@ -9,14 +9,14 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { District, OrderStatus, ShippingType } from '@prisma/client';
+import { District, OrderStatus, Role, ShippingType } from '@prisma/client';
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) {}
+  ) { }
 
   // ---------- CUSTOMER ----------
   async checkout(userId: string, dto: CreateOrderDto) {
@@ -299,28 +299,38 @@ export class OrderService {
     return map[current]?.includes(next) ?? false;
   }
 
-  async remove(id: string) {
-    try {
-      const findOrder = await this.prisma.order.findUnique({
-        where: { id }
-      })
-      if (!findOrder) {
-        return {
-          success: false,
-          message: 'Order does not exist',
-          data: null
-        }
-      }
+  async remove(id: string, userId: string, userRole: Role) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+    });
 
-    } catch (error) {
+    if (!order) {
       return {
         success: false,
-        message: 'Failed to delete order',
-        data: null
-      }
+        message: 'Order tidak ditemukan',
+        data: null,
+      };
     }
-    return await this.prisma.order.delete({
-      where: { id }
+
+    // Cek akses: hanya pemilik order atau admin
+    if (userRole !== Role.ADMIN && order.userId !== userId) {
+      throw new ForbiddenException('Kamu tidak punya akses ke order ini');
+    }
+
+    // Hanya bisa cancel jika status PENDING
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException('Order hanya bisa dibatalkan saat status PENDING');
+    }
+
+    const updated = await this.prisma.order.update({
+      where: { id },
+      data: { status: OrderStatus.CANCELLED },
     });
+
+    return {
+      success: true,
+      message: 'Order berhasil dibatalkan',
+      data: updated,
+    };
   }
 }
