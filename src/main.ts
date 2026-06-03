@@ -8,10 +8,8 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   app.enableCors({
-    origin: ['*'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
 
   app.useGlobalPipes(
