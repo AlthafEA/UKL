@@ -9,7 +9,7 @@ async function bootstrap() {
 
   // main.ts
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://sneakerlocal.up.railway.app'],
+    origin: ['http://localhost:3000', 'https://sneakerlocal.up.railway.app', 'https://ukl-4-fe.vercel.app/'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'], // ← Explicit headers
