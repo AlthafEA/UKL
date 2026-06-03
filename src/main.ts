@@ -7,9 +7,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
 
+  // main.ts
   app.enableCors({
-    origin: '*',
+    origin: ['http://localhost:3000', 'https://sneakerlocal.up.railway.app'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'], // ← Explicit headers
   });
 
   app.useGlobalPipes(
