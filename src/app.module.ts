@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config'; // tambah ini
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,7 +13,11 @@ import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(), // taruh di sini
+    ConfigModule.forRoot({ 
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     ProductModule,

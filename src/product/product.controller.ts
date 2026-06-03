@@ -116,6 +116,7 @@ export class ProductController {
       'Membuat produk baru (type=PRODUCT) atau menambah varian/SKU ke produk yang sudah ada (type=SKU). ' +
       'Hanya Admin yang bisa mengakses.',
   })
+
   @ApiCreatedResponse({ description: 'Produk/SKU berhasil dibuat' })
   @ApiBadRequestResponse({ description: 'Validasi gagal atau slug/SKU duplikat' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })

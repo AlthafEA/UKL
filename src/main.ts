@@ -48,6 +48,12 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 Server running on http://localhost:${port}`);
   console.log(`📖 Swagger docs: http://localhost:${port}/docs`);
+
+  console.log('CLOUDINARY CONFIG:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET ? '***ada***' : 'KOSONG',
+});
 }
 bootstrap();
 

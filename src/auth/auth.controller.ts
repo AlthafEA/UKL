@@ -97,34 +97,34 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Ambil semua data auth (placeholder)' })
-  @ApiOkResponse({ description: 'Berhasil mengambil data' })
-  findAll() {
-    return this.authService.findAll();
-  }
+  // @Get()
+  // @ApiOperation({ summary: 'Ambil semua data auth (placeholder)' })
+  // @ApiOkResponse({ description: 'Berhasil mengambil data' })
+  // findAll() {
+  //   return this.authService.findAll();
+  // }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Ambil data auth berdasarkan ID (placeholder)' })
-  @ApiParam({ name: 'id', description: 'ID auth', example: '1' })
-  @ApiOkResponse({ description: 'Berhasil mengambil data' })
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
+  // @Get(':id')
+  // @ApiOperation({ summary: 'Ambil data auth berdasarkan ID (placeholder)' })
+  // @ApiParam({ name: 'id', description: 'ID auth', example: '1' })
+  // @ApiOkResponse({ description: 'Berhasil mengambil data' })
+  // findOne(@Param('id') id: string) {
+  //   return this.authService.findOne(+id);
+  // }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update data auth (placeholder)' })
-  @ApiParam({ name: 'id', description: 'ID auth', example: '1' })
-  @ApiOkResponse({ description: 'Berhasil update data' })
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
+  // @Patch(':id')
+  // @ApiOperation({ summary: 'Update data auth (placeholder)' })
+  // @ApiParam({ name: 'id', description: 'ID auth', example: '1' })
+  // @ApiOkResponse({ description: 'Berhasil update data' })
+  // update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
+  //   return this.authService.update(+id, updateAuthDto);
+  // }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Hapus data auth (placeholder)' })
-  @ApiParam({ name: 'id', description: 'ID auth', example: '1' })
-  @ApiOkResponse({ description: 'Berhasil menghapus data' })
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
-  }
+  // @Delete(':id')
+  // @ApiOperation({ summary: 'Hapus data auth (placeholder)' })
+  // @ApiParam({ name: 'id', description: 'ID auth', example: '1' })
+  // @ApiOkResponse({ description: 'Berhasil menghapus data' })
+  // remove(@Param('id') id: string) {
+  //   return this.authService.remove(+id);
+  // }
 }

@@ -104,7 +104,6 @@ export class ProductService {
           slug: dto.slug,
           description: dto.description,
           basePrice: dto.basePrice,
-          imageUrl: dto.imageUrl,
           isActive: dto.isActive ?? true,
         },
       });
@@ -148,8 +147,12 @@ export class ProductService {
   }
 
   async uploadProductImage(productId: string, file: UploadedFile) {
+    console.log('FILE RECEIVED:', file); // <-- tambah ini
     await this.ensureProduct(productId);
     if (!file) throw new BadRequestException('File is required');
+
+    // Pastikan file punya buffer
+    if (!file.buffer) throw new BadRequestException('File buffer is missing');
 
     const uploaded = await this.cloudinary.uploadImage(file as any, { folder: `products/${productId}`, });
 
@@ -253,7 +256,7 @@ export class ProductService {
           data: null
         }
       }
-      
+
       return await this.prisma.product.delete({
         where: { id }
       });
