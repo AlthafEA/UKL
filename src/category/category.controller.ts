@@ -22,7 +22,7 @@ import { Roles } from '../helper/roles-decorator';
 @ApiTags('Categories')
 @Controller('categories')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(private readonly categoryService: CategoryService) { }
 
   @Get()
   @ApiOperation({
@@ -56,6 +56,16 @@ export class CategoryController {
   })
   findAll(@Query() query: QueryCategoryDto) {
     return this.categoryService.findAll(query);
+  }
+
+  @Get('all')
+  @ApiOperation({
+    summary: 'Daftar semua kategori aktif (Publik)',
+    description: 'Mengambil semua kategori aktif tanpa filter.',
+  })
+  @ApiOkResponse({ description: 'Berhasil mengambil semua kategori' })
+  listAll() {
+    return this.categoryService.listAll();
   }
 
   @Get(':id')

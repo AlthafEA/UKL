@@ -73,6 +73,22 @@ export class ProductService {
     return { page, limit, total, items };
   }
 
+  async listAll() {
+    const [products, categories] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where: { isActive: true },
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { name: 'asc' },
+      }),
+    ]);
+
+    return { products, categories };
+  }
+
   async detailBySlug(slug: string) {
     const product = await this.prisma.product.findUnique({
       where: { slug },

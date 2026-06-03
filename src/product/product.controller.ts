@@ -42,7 +42,7 @@ type UploadedFile = {
 @ApiTags('Products')
 @Controller()
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService) { }
 
   // -------- PUBLIC --------
   @Get('products')
@@ -91,6 +91,16 @@ export class ProductController {
   })
   list(@Query() query: QueryProductDto) {
     return this.productService.list(query);
+  }
+
+  @Get('all')
+  @ApiOperation({
+    summary: 'Daftar semua produk dan kategori aktif (Publik)',
+    description: 'Mengambil semua produk aktif dan kategori aktif tanpa filter.',
+  })
+  @ApiOkResponse({ description: 'Berhasil mengambil semua produk dan kategori' })
+  listAll() {
+    return this.productService.listAll();
   }
 
   @Get('products/:slug')
