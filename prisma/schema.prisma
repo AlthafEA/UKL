@@ -13,8 +13,8 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING                // created, no proof uploaded
-  WAITING_CONFIRMATION   // proof uploaded, waiting admin verify
+  PENDING // created, no proof uploaded
+  WAITING_CONFIRMATION // proof uploaded, waiting admin verify
   PAID
   SHIPPED
   CANCELLED
@@ -42,7 +42,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  orders       Order[]
+  orders Order[]
 }
 
 model Category {
@@ -53,7 +53,7 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  products  Product[]
+  products Product[]
 
   @@index([name])
 }
@@ -64,14 +64,14 @@ model Product {
   name        String
   slug        String   @unique
   description String?
-  basePrice   Int      // rupiah
-  imageUrl    String?  // 1 image per product (Cloudinary secure_url)
+  basePrice   Int // rupiah
+  imageUrl    String? // 1 image per product (Cloudinary secure_url)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  skus        ProductSku[]
+  category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  skus     ProductSku[]
 
   @@index([categoryId])
   @@index([basePrice])
@@ -85,8 +85,8 @@ model ProductSku {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  inventory Inventory?
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventory  Inventory?
   orderItems OrderItem[]
 
   @@unique([productId, color, size])
@@ -100,40 +100,40 @@ model Inventory {
   stock     Int      @default(0)
   updatedAt DateTime @updatedAt
 
-  sku       ProductSku @relation(fields: [skuId], references: [id], onDelete: Cascade)
+  sku ProductSku @relation(fields: [skuId], references: [id], onDelete: Cascade)
 }
 
 model DistrictShippingRate {
-  district District @id
-  fee      Int
-  isActive Boolean  @default(true)
-  updatedAt DateTime @updatedAt @default(now())
+  district  District @id
+  fee       Int
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Order {
-  id                  String      @id @default(cuid())
-  userId              String
-  status              OrderStatus @default(PENDING)
+  id     String      @id @default(cuid())
+  userId String
+  status OrderStatus @default(PENDING)
 
-  shippingType        ShippingType
-  district            District?
-  shippingAddress     String?
-  shippingFee         Int         @default(0)
+  shippingType    ShippingType
+  district        District?
+  shippingAddress String?
+  shippingFee     Int          @default(0)
 
-  subtotal            Int         @default(0)
-  total               Int         @default(0)
+  subtotal Int @default(0)
+  total    Int @default(0)
 
-  paymentMethod       String      // e.g. "MANUAL_TRANSFER"
-  paymentProofUrl     String?
+  paymentMethod          String // e.g. "MANUAL_TRANSFER"
+  paymentProofUrl        String?
   paymentProofUploadedAt DateTime?
-  paidAt              DateTime?
+  paidAt                 DateTime?
 
-  paymentExpiresAt    DateTime
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  paymentExpiresAt DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  user                User        @relation(fields: [userId], references: [id], onDelete: Restrict)
-  items               OrderItem[]
+  user  User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items OrderItem[]
 
   @@index([userId])
   @@index([status])
@@ -145,11 +145,11 @@ model OrderItem {
   orderId   String
   skuId     String
   quantity  Int
-  price     Int      // snapshot price at purchase time (Product.basePrice)
+  price     Int // snapshot price at purchase time (Product.basePrice)
   createdAt DateTime @default(now())
 
-  order     Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  sku       ProductSku @relation(fields: [skuId], references: [id], onDelete: Restrict)
+  order Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sku   ProductSku @relation(fields: [skuId], references: [id], onDelete: Restrict)
 
   @@unique([orderId, skuId])
   @@index([orderId])
