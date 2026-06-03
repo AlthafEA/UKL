@@ -6,8 +6,13 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
-  
-  app.enableCors({});
+
+  app.enableCors({
+    origin: ['*'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -51,10 +56,10 @@ async function bootstrap() {
   console.log(`📖 Swagger docs: http://localhost:${port}/docs`);
 
   console.log('CLOUDINARY CONFIG:', {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET ? '***ada***' : 'KOSONG',
-});
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET ? '***ada***' : 'KOSONG',
+  });
 }
 bootstrap();
 
