@@ -93,7 +93,7 @@ export class ProductController {
     return this.productService.list(query);
   }
 
-  @Get('all')
+  @Get('/products/all')
   @ApiOperation({
     summary: 'Daftar semua produk dan kategori aktif (Publik)',
     description: 'Mengambil semua produk aktif dan kategori aktif tanpa filter.',
