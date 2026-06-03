@@ -51,7 +51,8 @@ export class OrderController {
 
   // -------- CUSTOMER --------
   @Post('checkout')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('CUSTOMER')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Checkout / buat pesanan baru',
@@ -61,14 +62,18 @@ export class OrderController {
       'Pesanan yang tidak dibayar dalam 1 jam akan otomatis dibatalkan.',
   })
   @ApiCreatedResponse({ description: 'Pesanan berhasil dibuat' })
-  @ApiBadRequestResponse({ description: 'Validasi gagal, stok tidak cukup, atau SKU tidak ditemukan' })
+  @ApiBadRequestResponse({
+    description: 'Validasi gagal, stok tidak cukup, atau SKU tidak ditemukan',
+  })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   async checkout(@Req() req: any, @Body() dto: CreateOrderDto) {
     try {
       return await this.orderService.checkout(req.user.id, dto);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Checkout gagal');
+      throw new InternalServerErrorException(
+        error?.message || 'Checkout gagal',
+      );
     }
   }
 
@@ -77,7 +82,8 @@ export class OrderController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Daftar pesanan saya',
-    description: 'Mengambil daftar pesanan milik user yang sedang login, dengan pagination dan filter status.',
+    description:
+      'Mengambil daftar pesanan milik user yang sedang login, dengan pagination dan filter status.',
   })
   @ApiOkResponse({ description: 'Berhasil mengambil daftar pesanan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
@@ -85,7 +91,9 @@ export class OrderController {
     try {
       return await this.orderService.listMyOrders(req.user.id, query);
     } catch (error: any) {
-      throw new InternalServerErrorException(error?.message || 'Gagal mengambil daftar pesanan');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil daftar pesanan',
+      );
     }
   }
 
@@ -94,7 +102,8 @@ export class OrderController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Detail pesanan saya',
-    description: 'Mengambil detail pesanan berdasarkan ID. Hanya bisa melihat pesanan milik sendiri.',
+    description:
+      'Mengambil detail pesanan berdasarkan ID. Hanya bisa melihat pesanan milik sendiri.',
   })
   @ApiParam({ name: 'id', description: 'ID pesanan (CUID)' })
   @ApiOkResponse({ description: 'Berhasil mengambil detail pesanan' })
@@ -106,7 +115,9 @@ export class OrderController {
       return await this.orderService.getMyOrder(req.user.id, id);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal mengambil detail pesanan');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil detail pesanan',
+      );
     }
   }
 
@@ -143,7 +154,9 @@ export class OrderController {
   })
   @ApiParam({ name: 'id', description: 'ID pesanan (CUID)' })
   @ApiOkResponse({ description: 'Bukti pembayaran berhasil diupload' })
-  @ApiBadRequestResponse({ description: 'Pesanan bukan PENDING atau bukti sudah diupload' })
+  @ApiBadRequestResponse({
+    description: 'Pesanan bukan PENDING atau bukti sudah diupload',
+  })
   @ApiNotFoundResponse({ description: 'Pesanan tidak ditemukan' })
   @ApiForbiddenResponse({ description: 'Pesanan bukan milik user ini' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
@@ -154,10 +167,17 @@ export class OrderController {
     @Body() dto: UpdateOrderDto,
   ) {
     try {
-      return await this.orderService.uploadPaymentProof(req.user.id, id, file, dto);
+      return await this.orderService.uploadPaymentProof(
+        req.user.id,
+        id,
+        file,
+        dto,
+      );
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal upload bukti pembayaran');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal upload bukti pembayaran',
+      );
     }
   }
 
@@ -174,7 +194,11 @@ export class OrderController {
     @Res() res: express.Response,
   ) {
     try {
-      const buffer = await this.receiptService.generateReceipt(id, req.user.id, req.user.role);
+      const buffer = await this.receiptService.generateReceipt(
+        id,
+        req.user.id,
+        req.user.role,
+      );
 
       res.set({
         'Content-Type': 'application/pdf',
@@ -185,7 +209,9 @@ export class OrderController {
       res.end(buffer);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal download struk');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal download struk',
+      );
     }
   }
 
@@ -214,7 +240,9 @@ export class OrderController {
       return await this.orderService.updateStatusAdmin(id, dto);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal update status pesanan');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal update status pesanan',
+      );
     }
   }
 
@@ -224,7 +252,8 @@ export class OrderController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Hapus pesanan',
-    description: 'Menghapus pesanan berdasarkan ID. Bisa diakses oleh Customer dan Admin.',
+    description:
+      'Menghapus pesanan berdasarkan ID. Bisa diakses oleh Customer dan Admin.',
   })
   @ApiParam({ name: 'id', description: 'ID pesanan (CUID)' })
   @ApiOkResponse({ description: 'Pesanan berhasil dihapus' })
@@ -236,7 +265,9 @@ export class OrderController {
       return await this.orderService.remove(id, req.user.id, req.user.role);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal menghapus pesanan');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal menghapus pesanan',
+      );
     }
   }
 }

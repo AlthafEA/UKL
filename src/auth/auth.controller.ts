@@ -33,7 +33,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Daftar semua pengguna (Admin)',
-    description: 'Mengambil daftar seluruh pengguna. Hanya bisa diakses oleh Admin.',
+    description:
+      'Mengambil daftar seluruh pengguna. Hanya bisa diakses oleh Admin.',
   })
   @ApiOkResponse({
     description: 'Berhasil mengambil daftar pengguna',
@@ -57,46 +58,63 @@ export class AuthController {
     try {
       return await this.authService.findAllUsers();
     } catch (error: any) {
-      throw new InternalServerErrorException(error?.message || 'Gagal mengambil data pengguna');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil data pengguna',
+      );
     }
   }
 
   @Post('register/admin')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: 'Registrasi admin baru',
-    description: 'Membuat akun admin baru dengan email dan password.',
+    summary: 'Registrasi admin baru (Admin)',
+    description:
+      'Membuat akun admin baru dengan email dan password. Hanya bisa diakses oleh Admin.',
   })
   @ApiCreatedResponse({ description: 'Registrasi berhasil' })
-  @ApiBadRequestResponse({ description: 'Email sudah terdaftar atau validasi gagal' })
+  @ApiBadRequestResponse({
+    description: 'Email sudah terdaftar atau validasi gagal',
+  })
+  @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
   async createAdmin(@Body() createAuthDto: CreateAuthDto) {
     try {
       return await this.authService.registerAdmin(createAuthDto);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal registrasi admin');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal registrasi admin',
+      );
     }
   }
 
   @Post('register/customer')
   @ApiOperation({
     summary: 'Registrasi pelanggan baru',
-    description: 'Membuat akun pelanggan baru dengan email dan password. Email harus unik.',
+    description:
+      'Membuat akun pelanggan baru dengan email dan password. Email harus unik.',
   })
   @ApiCreatedResponse({ description: 'Registrasi berhasil' })
-  @ApiBadRequestResponse({ description: 'Email sudah terdaftar atau validasi gagal' })
+  @ApiBadRequestResponse({
+    description: 'Email sudah terdaftar atau validasi gagal',
+  })
   async createCustomer(@Body() createAuthDto: CreateAuthDto) {
     try {
       return await this.authService.registerCustomer(createAuthDto);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal registrasi pelanggan');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal registrasi pelanggan',
+      );
     }
   }
 
   @Post('login')
   @ApiOperation({
     summary: 'Login pengguna',
-    description: 'Autentikasi dengan email dan password. Mengembalikan JWT access token.',
+    description:
+      'Autentikasi dengan email dan password. Mengembalikan JWT access token.',
   })
   @ApiOkResponse({
     description: 'Login berhasil',

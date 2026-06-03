@@ -65,6 +65,10 @@ export class OrderService {
 
     for (const item of dto.items) {
       const sku = skuMap.get(item.skuId)!;
+      if (!sku.product.isActive)
+        throw new BadRequestException(
+          `Product "${sku.product.name}" is not active`,
+        );
       const price = sku.product.basePrice;
       subtotal += price * item.quantity;
       orderItemsData.push({
@@ -106,15 +110,23 @@ export class OrderService {
 
         // Atomic stock decrement per sku
         for (const x of orderItemsData) {
-          const res = await tx.inventory.updateMany({
-            where: { skuId: x.skuId, stock: { gte: x.quantity } },
-            data: { stock: { decrement: x.quantity } },
+          const inv = await tx.inventory.findUnique({
+            where: { skuId: x.skuId },
           });
-          if (res.count !== 1) {
+          if (!inv) {
             throw new BadRequestException(
-              `Insufficient stock for skuId=${x.skuId}`,
+              `Inventory record not found for skuId=${x.skuId}`,
             );
           }
+          if (inv.stock < x.quantity) {
+            throw new BadRequestException(
+              `Insufficient stock for skuId=${x.skuId}: available ${inv.stock}, requested ${x.quantity}`,
+            );
+          }
+          await tx.inventory.update({
+            where: { skuId: x.skuId },
+            data: { stock: { decrement: x.quantity } },
+          });
         }
 
         return tx.order.findUnique({

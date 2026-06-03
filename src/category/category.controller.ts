@@ -38,14 +38,17 @@ export class CategoryController {
   @Get()
   @ApiOperation({
     summary: 'Daftar semua kategori',
-    description: 'Mengambil daftar kategori dengan pagination dan filter. Endpoint publik.',
+    description:
+      'Mengambil daftar kategori dengan pagination dan filter. Endpoint publik.',
   })
   @ApiOkResponse({ description: 'Berhasil mengambil daftar kategori' })
   async findAll(@Query() query: QueryCategoryDto) {
     try {
       return await this.categoryService.findAll(query);
     } catch (error: any) {
-      throw new InternalServerErrorException(error?.message || 'Gagal mengambil daftar kategori');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil daftar kategori',
+      );
     }
   }
 
@@ -59,7 +62,9 @@ export class CategoryController {
     try {
       return await this.categoryService.listAll();
     } catch (error: any) {
-      throw new InternalServerErrorException(error?.message || 'Gagal mengambil semua kategori');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil semua kategori',
+      );
     }
   }
 
@@ -68,7 +73,11 @@ export class CategoryController {
     summary: 'Detail kategori',
     description: 'Mengambil detail satu kategori berdasarkan ID.',
   })
-  @ApiParam({ name: 'id', description: 'ID kategori (CUID)', example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID kategori (CUID)',
+    example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx',
+  })
   @ApiOkResponse({ description: 'Berhasil mengambil detail kategori' })
   @ApiNotFoundResponse({ description: 'Kategori tidak ditemukan' })
   async findOne(@Param('id') id: string) {
@@ -76,7 +85,9 @@ export class CategoryController {
       return await this.categoryService.findOne(id);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal mengambil detail kategori');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil detail kategori',
+      );
     }
   }
 
@@ -97,7 +108,9 @@ export class CategoryController {
       return await this.categoryService.create(dto);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal membuat kategori');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal membuat kategori',
+      );
     }
   }
 
@@ -120,7 +133,9 @@ export class CategoryController {
       return await this.categoryService.update(id, dto);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(error?.message || 'Gagal mengupdate kategori');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengupdate kategori',
+      );
     }
   }
 
@@ -130,7 +145,8 @@ export class CategoryController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Hapus kategori (Admin)',
-    description: 'Menghapus kategori berdasarkan ID. Hanya bisa diakses oleh Admin.',
+    description:
+      'Menghapus kategori berdasarkan ID. Hanya bisa diakses oleh Admin.',
   })
   @ApiParam({ name: 'id', description: 'ID kategori (CUID)' })
   @ApiOkResponse({ description: 'Kategori berhasil dihapus' })
@@ -141,7 +157,9 @@ export class CategoryController {
     try {
       return await this.categoryService.remove(id);
     } catch (error: any) {
-      throw new InternalServerErrorException(error?.message || 'Gagal menghapus kategori');
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal menghapus kategori',
+      );
     }
   }
 }

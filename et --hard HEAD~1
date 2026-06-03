@@ -1,0 +1,30 @@
+[33m4dcf191[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m change if condition to register as admin
+[33maa9de07[m add try catch in every endpoint
+[33mc6a8f09[m change all product
+[33mdf424f8[m add get all in product and category
+[33m0804bfd[m delete example in GET
+[33m3e716dd[m change in order and origin cors
+[33m635143d[m allow all url to cors
+[33m9112fca[m add https://ukl-4-fe.vercel.app/ to cors
+[33ma383f8f[m add credential
+[33ma428976[m fix cors
+[33ma10861a[m cors enable
+[33m0f7748a[m add cors funtion
+[33mb6bc57b[m Merge remote-tracking branch 'origin/railway/fix-deploy-e101c4'
+[33ma3b8b48[m Merge remote-tracking branch 'origin/railway/fix-deploy-64ffeb'
+[33mb5bdf53[m Merge branch 'main' of https://github.com/AlthafEA/UKL
+[33ma02bae5[m can export pdf
+[33m53873f1[m fix: correct DistrictShippingRate table name casing in migration SQL (#2)
+[33mf0d5345[m change order status
+[33m30dac04[m[33m ([m[1;31morigin/railway/fix-deploy-64ffeb[m[33m)[m fix: correct DistrictShippingRate table name casing in migration SQL
+[33mde7099a[m[33m ([m[1;31morigin/railway/fix-deploy-e101c4[m[33m)[m fix: correct DistrictShippingRate table name case in migration SQL
+[33md96e8c1[m fixing schema format
+[33mc7b7509[m add new migration
+[33mbfdb4c6[m can upload
+[33mbf7bf64[m second auth commit
+[33me9ab0c4[m auth commit
+[33mfb6f24a[m update backend
+[33m592a06b[m bisa login
+[33m5f5312b[m masi gabisa login plss
+[33mc5db8c8[m second commit
+[33mb678177[m first commit
