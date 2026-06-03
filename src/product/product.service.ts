@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -15,7 +19,7 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) { }
+  ) {}
 
   // ---------- PUBLIC ----------
   async list(query: QueryProductDto) {
@@ -34,10 +38,15 @@ export class ProductService {
       ];
     }
 
-    if (typeof query.minPrice === 'number' || typeof query.maxPrice === 'number') {
+    if (
+      typeof query.minPrice === 'number' ||
+      typeof query.maxPrice === 'number'
+    ) {
       where.basePrice = {};
-      if (typeof query.minPrice === 'number') where.basePrice.gte = query.minPrice;
-      if (typeof query.maxPrice === 'number') where.basePrice.lte = query.maxPrice;
+      if (typeof query.minPrice === 'number')
+        where.basePrice.gte = query.minPrice;
+      if (typeof query.maxPrice === 'number')
+        where.basePrice.lte = query.maxPrice;
     }
 
     // categorySlug filter (join via category)
@@ -103,7 +112,8 @@ export class ProductService {
       },
     });
 
-    if (!product || !product.isActive) throw new NotFoundException('Product not found');
+    if (!product || !product.isActive)
+      throw new NotFoundException('Product not found');
     return product;
   }
 
@@ -124,7 +134,9 @@ export class ProductService {
         },
       });
     } catch (e: any) {
-      throw new BadRequestException('Failed to create product. Slug might already exist.');
+      throw new BadRequestException(
+        'Failed to create product. Slug might already exist.',
+      );
     }
   }
 
@@ -147,7 +159,9 @@ export class ProductService {
           },
         });
       } catch (e: any) {
-        throw new BadRequestException('Failed to update product. Slug might already exist.');
+        throw new BadRequestException(
+          'Failed to update product. Slug might already exist.',
+        );
       }
     }
 
@@ -170,7 +184,9 @@ export class ProductService {
     // Pastikan file punya buffer
     if (!file.buffer) throw new BadRequestException('File buffer is missing');
 
-    const uploaded = await this.cloudinary.uploadImage(file as any, { folder: `products/${productId}`, });
+    const uploaded = await this.cloudinary.uploadImage(file as any, {
+      folder: `products/${productId}`,
+    });
 
     return this.prisma.product.update({
       where: { id: productId },
@@ -212,7 +228,9 @@ export class ProductService {
         include: { inventory: true },
       });
     } catch (e: any) {
-      throw new BadRequestException('Failed to create SKU. Possibly duplicate (product,color,size).');
+      throw new BadRequestException(
+        'Failed to create SKU. Possibly duplicate (product,color,size).',
+      );
     }
   }
 
@@ -230,13 +248,17 @@ export class ProductService {
         },
       });
     } catch (e: any) {
-      throw new BadRequestException('Failed to update SKU. Possibly duplicate (product,color,size).');
+      throw new BadRequestException(
+        'Failed to update SKU. Possibly duplicate (product,color,size).',
+      );
     }
   }
 
   async updateStock(skuId: string, dto: UpdateProductDto) {
-    if (dto.type !== 'STOCK') throw new BadRequestException('type must be STOCK');
-    if (typeof dto.stock !== 'number') throw new BadRequestException('stock is required');
+    if (dto.type !== 'STOCK')
+      throw new BadRequestException('type must be STOCK');
+    if (typeof dto.stock !== 'number')
+      throw new BadRequestException('stock is required');
 
     await this.ensureSku(skuId);
 
@@ -249,7 +271,9 @@ export class ProductService {
 
   // ---------- helpers ----------
   private async ensureProduct(productId: string) {
-    const p = await this.prisma.product.findUnique({ where: { id: productId } });
+    const p = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!p) throw new NotFoundException('Product not found');
     return p;
   }
@@ -263,25 +287,25 @@ export class ProductService {
   async remove(id: string) {
     try {
       const findProduct = await this.prisma.product.findUnique({
-        where: { id }
-      })
+        where: { id },
+      });
       if (!findProduct) {
         return {
           success: false,
           message: 'Product does not exist',
-          data: null
-        }
+          data: null,
+        };
       }
 
       return await this.prisma.product.delete({
-        where: { id }
+        where: { id },
       });
     } catch (error) {
       return {
         success: false,
         message: 'Failed to delete product',
-        data: null
-      }
+        data: null,
+      };
     }
   }
 }

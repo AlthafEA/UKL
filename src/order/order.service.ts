@@ -16,15 +16,19 @@ export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
-  ) { }
+  ) {}
 
   // ---------- CUSTOMER ----------
   async checkout(userId: string, dto: CreateOrderDto) {
     if (!dto.items?.length) throw new BadRequestException('items is required');
 
     if (dto.shippingType === ShippingType.DELIVERY) {
-      if (!dto.district) throw new BadRequestException('district is required for DELIVERY');
-      if (!dto.shippingAddress) throw new BadRequestException('shippingAddress is required for DELIVERY');
+      if (!dto.district)
+        throw new BadRequestException('district is required for DELIVERY');
+      if (!dto.shippingAddress)
+        throw new BadRequestException(
+          'shippingAddress is required for DELIVERY',
+        );
     } else {
       // PICKUP
       dto.district = undefined;
@@ -53,13 +57,21 @@ export class OrderService {
 
     // compute subtotal from DB
     let subtotal = 0;
-    const orderItemsData: Array<{ skuId: string; quantity: number; price: number }> = [];
+    const orderItemsData: Array<{
+      skuId: string;
+      quantity: number;
+      price: number;
+    }> = [];
 
     for (const item of dto.items) {
       const sku = skuMap.get(item.skuId)!;
       const price = sku.product.basePrice;
       subtotal += price * item.quantity;
-      orderItemsData.push({ skuId: item.skuId, quantity: item.quantity, price });
+      orderItemsData.push({
+        skuId: item.skuId,
+        quantity: item.quantity,
+        price,
+      });
     }
 
     const total = subtotal + shippingFee;
@@ -73,7 +85,7 @@ export class OrderService {
             userId,
             status: OrderStatus.PENDING,
             shippingType: dto.shippingType,
-            district: dto.district as District | undefined,
+            district: dto.district,
             shippingAddress: dto.shippingAddress,
             shippingFee,
             subtotal,
@@ -99,7 +111,9 @@ export class OrderService {
             data: { stock: { decrement: x.quantity } },
           });
           if (res.count !== 1) {
-            throw new BadRequestException(`Insufficient stock for skuId=${x.skuId}`);
+            throw new BadRequestException(
+              `Insufficient stock for skuId=${x.skuId}`,
+            );
           }
         }
 
@@ -159,13 +173,22 @@ export class OrderService {
     return order;
   }
 
-  async uploadPaymentProof(userId: string, orderId: string, file: Express.Multer.File, dto: UpdateOrderDto) {
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+  async uploadPaymentProof(
+    userId: string,
+    orderId: string,
+    file: Express.Multer.File,
+    dto: UpdateOrderDto,
+  ) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('Order not found');
     if (order.userId !== userId) throw new ForbiddenException('Forbidden');
 
     if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Only PENDING orders can upload payment proof');
+      throw new BadRequestException(
+        'Only PENDING orders can upload payment proof',
+      );
     }
     if (order.paymentProofUploadedAt) {
       throw new BadRequestException('Payment proof already uploaded');
@@ -208,13 +231,21 @@ export class OrderService {
 
     const allowed = this.isAllowedTransition(order.status, next);
     if (!allowed) {
-      throw new BadRequestException(`Invalid status transition ${order.status} -> ${next}`);
+      throw new BadRequestException(
+        `Invalid status transition ${order.status} -> ${next}`,
+      );
     }
 
     // If admin cancels after stock already deducted, restore stock
-    if (next === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
+    if (
+      next === OrderStatus.CANCELLED &&
+      order.status !== OrderStatus.CANCELLED
+    ) {
       await this.prisma.$transaction(async (tx) => {
-        await tx.order.update({ where: { id: orderId }, data: { status: OrderStatus.CANCELLED } });
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: OrderStatus.CANCELLED },
+        });
 
         for (const item of order.items) {
           await tx.inventory.updateMany({
@@ -224,7 +255,10 @@ export class OrderService {
         }
       });
 
-      return this.prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+      return this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: true },
+      });
     }
 
     // Mark paidAt on PAID
@@ -280,7 +314,8 @@ export class OrderService {
     const rate = await this.prisma.districtShippingRate.findUnique({
       where: { district },
     });
-    if (!rate || !rate.isActive) throw new BadRequestException('Shipping rate unavailable for district');
+    if (!rate || !rate.isActive)
+      throw new BadRequestException('Shipping rate unavailable for district');
 
     return rate.fee;
   }
@@ -319,7 +354,9 @@ export class OrderService {
 
     // Hanya bisa cancel jika status PENDING
     if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Order hanya bisa dibatalkan saat status PENDING');
+      throw new BadRequestException(
+        'Order hanya bisa dibatalkan saat status PENDING',
+      );
     }
 
     const updated = await this.prisma.order.update({

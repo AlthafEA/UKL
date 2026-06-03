@@ -28,9 +28,9 @@ async function bootstrap() {
     .setTitle('UKL Backend API')
     .setDescription(
       'REST API untuk aplikasi e-commerce UKL. ' +
-      'Dibangun dengan NestJS + Prisma + MySQL. ' +
-      'Gunakan endpoint `/auth/login` untuk mendapatkan JWT token, ' +
-      'lalu klik tombol **Authorize** di atas dan masukkan token.',
+        'Dibangun dengan NestJS + Prisma + MySQL. ' +
+        'Gunakan endpoint `/auth/login` untuk mendapatkan JWT token, ' +
+        'lalu klik tombol **Authorize** di atas dan masukkan token.',
     )
     .setVersion('1.0.0')
     .addBearerAuth(
@@ -63,4 +63,3 @@ async function bootstrap() {
   });
 }
 bootstrap();
-

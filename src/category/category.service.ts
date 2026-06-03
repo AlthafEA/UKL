@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
@@ -6,7 +10,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCategoryDto) {
     try {
@@ -18,7 +22,9 @@ export class CategoryService {
       });
     } catch (e: any) {
       // slug unique violation (Prisma code differs by connector; keep generic)
-      throw new BadRequestException('Failed to create category. Slug might already exist.');
+      throw new BadRequestException(
+        'Failed to create category. Slug might already exist.',
+      );
     }
   }
 
@@ -81,32 +87,33 @@ export class CategoryService {
         },
       });
     } catch (e: any) {
-      throw new BadRequestException('Failed to update category. Slug might already exist.');
+      throw new BadRequestException(
+        'Failed to update category. Slug might already exist.',
+      );
     }
   }
 
   async remove(id: string) {
     try {
       const findCategory = await this.prisma.category.findUnique({
-        where: { id }
-      })
+        where: { id },
+      });
       if (!findCategory) {
         return {
           success: false,
           message: 'Category does not exist',
-          data: null
-        }
+          data: null,
+        };
       }
-
     } catch (error) {
       return {
         success: false,
         message: 'Failed to delete category',
-        data: null
-      }
+        data: null,
+      };
     }
     return await this.prisma.category.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

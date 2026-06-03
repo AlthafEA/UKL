@@ -12,6 +12,7 @@ import {
   Req,
   Delete,
   Res,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -36,7 +37,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { RolesGuard } from '../helper/roles-guard';
-import { Roles } from '../helper/roles-decorator'; // jika belum ada, bilang
+import { Roles } from '../helper/roles-decorator';
 import { ReceiptService } from './receipt.service';
 import express from 'express';
 
@@ -45,8 +46,8 @@ import express from 'express';
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
-    private readonly receiptService: ReceiptService
-  ) { }
+    private readonly receiptService: ReceiptService,
+  ) {}
 
   // -------- CUSTOMER --------
   @Post('checkout')
@@ -59,42 +60,16 @@ export class OrderController {
       'Jika shippingType=DELIVERY, wajib isi district dan shippingAddress. ' +
       'Pesanan yang tidak dibayar dalam 1 jam akan otomatis dibatalkan.',
   })
-  @ApiCreatedResponse({
-    description: 'Pesanan berhasil dibuat',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        userId: { type: 'string' },
-        status: { type: 'string', example: 'PENDING' },
-        shippingType: { type: 'string', example: 'DELIVERY' },
-        district: { type: 'string', example: 'LOWOKWARU', nullable: true },
-        shippingAddress: { type: 'string', nullable: true },
-        shippingFee: { type: 'number', example: 10000 },
-        subtotal: { type: 'number', example: 170000 },
-        total: { type: 'number', example: 180000 },
-        paymentMethod: { type: 'string', example: 'MANUAL_TRANSFER' },
-        paymentExpiresAt: { type: 'string', format: 'date-time' },
-        createdAt: { type: 'string', format: 'date-time' },
-        items: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              skuId: { type: 'string' },
-              quantity: { type: 'number', example: 2 },
-              price: { type: 'number', example: 85000 },
-            },
-          },
-        },
-      },
-    },
-  })
+  @ApiCreatedResponse({ description: 'Pesanan berhasil dibuat' })
   @ApiBadRequestResponse({ description: 'Validasi gagal, stok tidak cukup, atau SKU tidak ditemukan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
-  checkout(@Req() req: any, @Body() dto: CreateOrderDto) {
-    return this.orderService.checkout(req.user.id, dto);
+  async checkout(@Req() req: any, @Body() dto: CreateOrderDto) {
+    try {
+      return await this.orderService.checkout(req.user.id, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Checkout gagal');
+    }
   }
 
   @Get('orders')
@@ -104,21 +79,14 @@ export class OrderController {
     summary: 'Daftar pesanan saya',
     description: 'Mengambil daftar pesanan milik user yang sedang login, dengan pagination dan filter status.',
   })
-  @ApiOkResponse({
-    description: 'Berhasil mengambil daftar pesanan',
-    schema: {
-      type: 'object',
-      properties: {
-        page: { type: 'number', example: 1 },
-        limit: { type: 'number', example: 20 },
-        total: { type: 'number', example: 3 },
-        items: { type: 'array', items: { type: 'object' } },
-      },
-    },
-  })
+  @ApiOkResponse({ description: 'Berhasil mengambil daftar pesanan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
-  listMy(@Req() req: any, @Query() query: QueryOrderDto) {
-    return this.orderService.listMyOrders(req.user.id, query);
+  async listMy(@Req() req: any, @Query() query: QueryOrderDto) {
+    try {
+      return await this.orderService.listMyOrders(req.user.id, query);
+    } catch (error: any) {
+      throw new InternalServerErrorException(error?.message || 'Gagal mengambil daftar pesanan');
+    }
   }
 
   @Get('orders/:id')
@@ -133,8 +101,13 @@ export class OrderController {
   @ApiNotFoundResponse({ description: 'Pesanan tidak ditemukan' })
   @ApiForbiddenResponse({ description: 'Pesanan bukan milik user ini' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
-  getMy(@Req() req: any, @Param('id') id: string) {
-    return this.orderService.getMyOrder(req.user.id, id);
+  async getMy(@Req() req: any, @Param('id') id: string) {
+    try {
+      return await this.orderService.getMyOrder(req.user.id, id);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal mengambil detail pesanan');
+    }
   }
 
   @Post('orders/:id/payment-proof')
@@ -174,13 +147,18 @@ export class OrderController {
   @ApiNotFoundResponse({ description: 'Pesanan tidak ditemukan' })
   @ApiForbiddenResponse({ description: 'Pesanan bukan milik user ini' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
-  uploadProof(
+  async uploadProof(
     @Req() req: any,
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateOrderDto,
   ) {
-    return this.orderService.uploadPaymentProof(req.user.id, id, file, dto);
+    try {
+      return await this.orderService.uploadPaymentProof(req.user.id, id, file, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal upload bukti pembayaran');
+    }
   }
 
   @Get('/orders/:id/receipt')
@@ -193,17 +171,22 @@ export class OrderController {
   async downloadReceipt(
     @Param('id') id: string,
     @Req() req,
-    @Res() res: express.Response, // pastikan type-nya dari express
+    @Res() res: express.Response,
   ) {
-    const buffer = await this.receiptService.generateReceipt(id, req.user.id, req.user.role);
+    try {
+      const buffer = await this.receiptService.generateReceipt(id, req.user.id, req.user.role);
 
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="struk-${id}.pdf"`,
-      'Content-Length': buffer.length,
-    });
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="struk-${id}.pdf"`,
+        'Content-Length': buffer.length,
+      });
 
-    res.end(buffer);
+      res.end(buffer);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal download struk');
+    }
   }
 
   // -------- ADMIN --------
@@ -226,13 +209,18 @@ export class OrderController {
   @ApiBadRequestResponse({ description: 'Transisi status tidak valid' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
-    return this.orderService.updateStatusAdmin(id, dto);
+  async updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
+    try {
+      return await this.orderService.updateStatusAdmin(id, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal update status pesanan');
+    }
   }
 
-  @Delete('orders/:id')
+  @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('CUSTOMER', 'ADMIN')
+  @Roles('ADMIN', 'CUSTOMER')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Hapus pesanan',
@@ -243,12 +231,12 @@ export class OrderController {
   @ApiNotFoundResponse({ description: 'Pesanan tidak ditemukan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Tidak memiliki akses' })
-
-  @Delete(':id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN', 'CUSTOMER')
-  @ApiBearerAuth('JWT-auth')
-  remove(@Param('id') id: string, @Req() req) {
-    return this.orderService.remove(id, req.user.id, req.user.role);
+  async remove(@Param('id') id: string, @Req() req) {
+    try {
+      return await this.orderService.remove(id, req.user.id, req.user.role);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal menghapus pesanan');
+    }
   }
 }

@@ -4,7 +4,7 @@ import { IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
 export class UpdateCategoryDto {
   @ApiPropertyOptional({
     description: 'Nama kategori baru',
-    example: 'Kaos Premium',
+    example: 'Sepatu Formal',
   })
   @IsString()
   @IsOptional()
@@ -12,7 +12,7 @@ export class UpdateCategoryDto {
 
   @ApiPropertyOptional({
     description: 'Slug baru (lowercase alphanumeric + dash)',
-    example: 'kaos-premium',
+    example: 'sepatu-formal',
   })
   @IsString()
   @IsOptional()

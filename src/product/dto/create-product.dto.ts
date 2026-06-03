@@ -36,7 +36,7 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({
     description: 'Nama produk (wajib jika type=PRODUCT)',
-    example: 'Kaos Polos Hitam',
+    example: 'Sepatu Running Hitam',
   })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
@@ -45,7 +45,7 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({
     description: 'Slug URL-friendly (wajib jika type=PRODUCT)',
-    example: 'kaos-polos-hitam',
+    example: 'sepatu-running-hitam',
   })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()
@@ -57,7 +57,7 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({
     description: 'Deskripsi produk',
-    example: 'Kaos polos bahan cotton combed 30s',
+    example: 'Sepatu running berbahan mesh breathable',
   })
   @ValidateIf((o) => o.type === 'PRODUCT')
   @IsString()

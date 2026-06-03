@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
@@ -22,40 +33,20 @@ import { Roles } from '../helper/roles-decorator';
 @ApiTags('Categories')
 @Controller('categories')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) { }
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
   @ApiOperation({
     summary: 'Daftar semua kategori',
     description: 'Mengambil daftar kategori dengan pagination dan filter. Endpoint publik.',
   })
-  @ApiOkResponse({
-    description: 'Berhasil mengambil daftar kategori',
-    schema: {
-      type: 'object',
-      properties: {
-        page: { type: 'number', example: 1 },
-        limit: { type: 'number', example: 20 },
-        total: { type: 'number', example: 5 },
-        items: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string', example: '' },
-              slug: { type: 'string', example: '' },
-              isActive: { type: 'boolean', example: true },
-              createdAt: { type: 'string', format: 'date-time' },
-              updatedAt: { type: 'string', format: 'date-time' },
-            },
-          },
-        },
-      },
-    },
-  })
-  findAll(@Query() query: QueryCategoryDto) {
-    return this.categoryService.findAll(query);
+  @ApiOkResponse({ description: 'Berhasil mengambil daftar kategori' })
+  async findAll(@Query() query: QueryCategoryDto) {
+    try {
+      return await this.categoryService.findAll(query);
+    } catch (error: any) {
+      throw new InternalServerErrorException(error?.message || 'Gagal mengambil daftar kategori');
+    }
   }
 
   @Get('all')
@@ -64,8 +55,12 @@ export class CategoryController {
     description: 'Mengambil semua kategori aktif tanpa filter.',
   })
   @ApiOkResponse({ description: 'Berhasil mengambil semua kategori' })
-  listAll() {
-    return this.categoryService.listAll();
+  async listAll() {
+    try {
+      return await this.categoryService.listAll();
+    } catch (error: any) {
+      throw new InternalServerErrorException(error?.message || 'Gagal mengambil semua kategori');
+    }
   }
 
   @Get(':id')
@@ -76,8 +71,13 @@ export class CategoryController {
   @ApiParam({ name: 'id', description: 'ID kategori (CUID)', example: 'clxxxxxxxxxxxxxxxxxxxxxxxxx' })
   @ApiOkResponse({ description: 'Berhasil mengambil detail kategori' })
   @ApiNotFoundResponse({ description: 'Kategori tidak ditemukan' })
-  findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    try {
+      return await this.categoryService.findOne(id);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal mengambil detail kategori');
+    }
   }
 
   @Post()
@@ -92,8 +92,13 @@ export class CategoryController {
   @ApiBadRequestResponse({ description: 'Slug sudah ada atau validasi gagal' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  create(@Body() dto: CreateCategoryDto) {
-    return this.categoryService.create(dto);
+  async create(@Body() dto: CreateCategoryDto) {
+    try {
+      return await this.categoryService.create(dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal membuat kategori');
+    }
   }
 
   @Patch(':id')
@@ -110,8 +115,13 @@ export class CategoryController {
   @ApiBadRequestResponse({ description: 'Slug sudah ada atau validasi gagal' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
-    return this.categoryService.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    try {
+      return await this.categoryService.update(id, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(error?.message || 'Gagal mengupdate kategori');
+    }
   }
 
   @Delete(':id')
@@ -127,7 +137,11 @@ export class CategoryController {
   @ApiNotFoundResponse({ description: 'Kategori tidak ditemukan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(id);
+  async remove(@Param('id') id: string) {
+    try {
+      return await this.categoryService.remove(id);
+    } catch (error: any) {
+      throw new InternalServerErrorException(error?.message || 'Gagal menghapus kategori');
+    }
   }
 }
