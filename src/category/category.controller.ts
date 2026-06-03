@@ -43,8 +43,8 @@ export class CategoryController {
             type: 'object',
             properties: {
               id: { type: 'string' },
-              name: { type: 'string', example: 'Kaos Polos' },
-              slug: { type: 'string', example: 'kaos-polos' },
+              name: { type: 'string', example: '' },
+              slug: { type: 'string', example: '' },
               isActive: { type: 'boolean', example: true },
               createdAt: { type: 'string', format: 'date-time' },
               updatedAt: { type: 'string', format: 'date-time' },
