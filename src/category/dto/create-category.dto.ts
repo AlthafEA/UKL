@@ -4,7 +4,7 @@ import { IsNotEmpty, IsString, Matches } from 'class-validator';
 export class CreateCategoryDto {
   @ApiProperty({
     description: 'Nama kategori',
-    example: 'Kaos Polos',
+    example: 'Sepatu Running',
   })
   @IsString()
   @IsNotEmpty()
@@ -12,7 +12,7 @@ export class CreateCategoryDto {
 
   @ApiProperty({
     description: 'Slug URL-friendly (lowercase alphanumeric + dash)',
-    example: 'kaos-polos',
+    example: 'sepatu-running',
     pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
   })
   @IsString()

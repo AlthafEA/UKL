@@ -1,11 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, Matches, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Matches,
+  Min,
+} from 'class-validator';
 
 export class QueryCategoryDto {
   @ApiPropertyOptional({
     description: 'Kata kunci pencarian (nama/slug)',
-    example: 'kaos',
+    example: 'sepatu',
   })
   @IsString()
   @IsOptional()
@@ -13,7 +20,7 @@ export class QueryCategoryDto {
 
   @ApiPropertyOptional({
     description: 'Filter berdasarkan slug',
-    example: 'kaos-polos',
+    example: 'sepatu-running',
   })
   @IsString()
   @IsOptional()

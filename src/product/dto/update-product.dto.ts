@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Matches, Min, ValidateIf } from 'class-validator';
+import {
+  IsInt,
+  IsOptional,
+  IsString,
+  Matches,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateProductDto {
   /**
@@ -29,7 +36,7 @@ export class UpdateProductDto {
 
   @ApiPropertyOptional({
     description: 'Nama produk baru',
-    example: 'Kaos Polos Premium',
+    example: 'Sepatu Formal Premium',
   })
   @ValidateIf((o) => !o.type || o.type === 'PRODUCT')
   @IsString()
@@ -38,7 +45,7 @@ export class UpdateProductDto {
 
   @ApiPropertyOptional({
     description: 'Slug baru',
-    example: 'kaos-polos-premium',
+    example: 'sepatu-formal-premium',
   })
   @ValidateIf((o) => !o.type || o.type === 'PRODUCT')
   @IsString()
@@ -50,7 +57,7 @@ export class UpdateProductDto {
 
   @ApiPropertyOptional({
     description: 'Deskripsi produk baru',
-    example: 'Kaos polos premium bahan cotton combed 24s',
+    example: 'Sepatu formal premium bahan kulit sintetis',
   })
   @ValidateIf((o) => !o.type || o.type === 'PRODUCT')
   @IsString()

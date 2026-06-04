@@ -5,7 +5,7 @@ import { IsInt, IsOptional, IsString, Matches, Min } from 'class-validator';
 export class QueryProductDto {
   @ApiPropertyOptional({
     description: 'Kata kunci pencarian (nama/slug/deskripsi)',
-    example: 'kaos',
+    example: 'sepatu',
   })
   @IsString()
   @IsOptional()
@@ -13,12 +13,13 @@ export class QueryProductDto {
 
   @ApiPropertyOptional({
     description: 'Filter berdasarkan slug kategori',
-    example: 'kaos-polos',
+    example: 'sepatu-running',
   })
   @IsString()
   @IsOptional()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'categorySlug must be lowercase alphanumeric words separated by "-"',
+    message:
+      'categorySlug must be lowercase alphanumeric words separated by "-"',
   })
   categorySlug?: string;
 

@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -42,7 +43,7 @@ type UploadedFile = {
 @ApiTags('Products')
 @Controller()
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
   // -------- PUBLIC --------
   @Get('products')
@@ -52,67 +53,60 @@ export class ProductController {
       'Mengambil daftar produk aktif dengan pagination dan filter berdasarkan ' +
       'kategori, warna, ukuran, dan rentang harga.',
   })
-  @ApiOkResponse({
-    description: 'Berhasil mengambil daftar produk',
-    schema: {
-      type: 'object',
-      properties: {
-        page: { type: 'number', example: 1 },
-        limit: { type: 'number', example: 20 },
-        total: { type: 'number', example: 50 },
-        items: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              categoryId: { type: 'string' },
-              name: { type: 'string', example: '' },
-              slug: { type: 'string', example: '' },
-              description: { type: 'string' },
-              basePrice: { type: 'number', example: 0 },
-              imageUrl: { type: 'string', nullable: true },
-              isActive: { type: 'boolean', example: true },
-              createdAt: { type: 'string', format: 'date-time' },
-              updatedAt: { type: 'string', format: 'date-time' },
-              category: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                  name: { type: 'string', example: '' },
-                  slug: { type: 'string', example: '' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  })
-  list(@Query() query: QueryProductDto) {
-    return this.productService.list(query);
+  @ApiOkResponse({ description: 'Berhasil mengambil daftar produk' })
+  async list(@Query() query: QueryProductDto) {
+    try {
+      return await this.productService.list(query);
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil daftar produk',
+      );
+    }
   }
 
   @Get('/products/all')
   @ApiOperation({
     summary: 'Daftar semua produk dan kategori aktif (Publik)',
-    description: 'Mengambil semua produk aktif dan kategori aktif tanpa filter.',
+    description:
+      'Mengambil semua produk aktif dan kategori aktif tanpa filter.',
   })
-  @ApiOkResponse({ description: 'Berhasil mengambil semua produk dan kategori' })
-  listAll() {
-    return this.productService.listAll();
+  @ApiOkResponse({
+    description: 'Berhasil mengambil semua produk dan kategori',
+  })
+  async listAll() {
+    try {
+      return await this.productService.listAll();
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil semua produk',
+      );
+    }
   }
 
   @Get('products/:slug')
   @ApiOperation({
     summary: 'Detail produk (Publik)',
-    description: 'Mengambil detail produk berdasarkan slug, termasuk SKU dan inventory.',
+    description:
+      'Mengambil detail produk berdasarkan slug, termasuk SKU dan inventory.',
   })
-  @ApiParam({ name: 'slug', description: 'Slug produk', example: 'kaos-polos-hitam' })
+  @ApiParam({
+    name: 'slug',
+    description: 'Slug produk',
+    example: 'sepatu-running-hitam',
+  })
   @ApiOkResponse({ description: 'Berhasil mengambil detail produk' })
-  @ApiNotFoundResponse({ description: 'Produk tidak ditemukan atau tidak aktif' })
-  detail(@Param('slug') slug: string) {
-    return this.productService.detailBySlug(slug);
+  @ApiNotFoundResponse({
+    description: 'Produk tidak ditemukan atau tidak aktif',
+  })
+  async detail(@Param('slug') slug: string) {
+    try {
+      return await this.productService.detailBySlug(slug);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil detail produk',
+      );
+    }
   }
 
   // -------- ADMIN --------
@@ -126,14 +120,21 @@ export class ProductController {
       'Membuat produk baru (type=PRODUCT) atau menambah varian/SKU ke produk yang sudah ada (type=SKU). ' +
       'Hanya Admin yang bisa mengakses.',
   })
-
   @ApiCreatedResponse({ description: 'Produk/SKU berhasil dibuat' })
-  @ApiBadRequestResponse({ description: 'Validasi gagal atau slug/SKU duplikat' })
+  @ApiBadRequestResponse({
+    description: 'Validasi gagal atau slug/SKU duplikat',
+  })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  create(@Body() dto: CreateProductDto) {
-    // dto.type = PRODUCT or SKU
-    return this.productService.create(dto);
+  async create(@Body() dto: CreateProductDto) {
+    try {
+      return await this.productService.create(dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal membuat produk',
+      );
+    }
   }
 
   @Patch('products/:id')
@@ -142,7 +143,8 @@ export class ProductController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update produk (Admin)',
-    description: 'Mengupdate data produk. Gunakan type=PRODUCT atau kosongkan type.',
+    description:
+      'Mengupdate data produk. Gunakan type=PRODUCT atau kosongkan type.',
   })
   @ApiParam({ name: 'id', description: 'ID produk (CUID)' })
   @ApiOkResponse({ description: 'Produk berhasil diupdate' })
@@ -150,8 +152,15 @@ export class ProductController {
   @ApiBadRequestResponse({ description: 'Validasi gagal atau slug duplikat' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.productService.updateProduct(id, dto);
+  async updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    try {
+      return await this.productService.updateProduct(id, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengupdate produk',
+      );
+    }
   }
 
   @Post('products/:id/image')
@@ -161,7 +170,8 @@ export class ProductController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Upload gambar produk (Admin)',
-    description: 'Upload gambar produk ke Cloudinary. File dikirim sebagai multipart/form-data.',
+    description:
+      'Upload gambar produk ke Cloudinary. File dikirim sebagai multipart/form-data.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -184,8 +194,18 @@ export class ProductController {
   @ApiBadRequestResponse({ description: 'File tidak ditemukan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  uploadImage(@Param('id') id: string, @UploadedFile() file: UploadedFile) {
-    return this.productService.uploadProductImage(id, file);
+  async uploadImage(
+    @Param('id') id: string,
+    @UploadedFile() file: UploadedFile,
+  ) {
+    try {
+      return await this.productService.uploadProductImage(id, file);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal upload gambar',
+      );
+    }
   }
 
   @Patch('skus/:id')
@@ -194,7 +214,8 @@ export class ProductController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update SKU/varian (Admin)',
-    description: 'Mengupdate warna dan/atau ukuran SKU. Gunakan type=SKU di body.',
+    description:
+      'Mengupdate warna dan/atau ukuran SKU. Gunakan type=SKU di body.',
   })
   @ApiParam({ name: 'id', description: 'ID SKU (CUID)' })
   @ApiOkResponse({ description: 'SKU berhasil diupdate' })
@@ -202,9 +223,15 @@ export class ProductController {
   @ApiBadRequestResponse({ description: 'Validasi gagal atau SKU duplikat' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  updateSku(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    // dto.type = SKU
-    return this.productService.updateSku(id, dto);
+  async updateSku(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    try {
+      return await this.productService.updateSku(id, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengupdate SKU',
+      );
+    }
   }
 
   @Patch('inventories/:skuId')
@@ -213,17 +240,29 @@ export class ProductController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update stok inventory (Admin)',
-    description: 'Mengupdate jumlah stok untuk SKU tertentu. Gunakan type=STOCK di body.',
+    description:
+      'Mengupdate jumlah stok untuk SKU tertentu. Gunakan type=STOCK di body.',
   })
   @ApiParam({ name: 'skuId', description: 'ID SKU (CUID)' })
   @ApiOkResponse({ description: 'Stok berhasil diupdate' })
   @ApiNotFoundResponse({ description: 'SKU tidak ditemukan' })
-  @ApiBadRequestResponse({ description: 'type harus STOCK dan stock wajib diisi' })
+  @ApiBadRequestResponse({
+    description: 'type harus STOCK dan stock wajib diisi',
+  })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  updateStock(@Param('skuId') skuId: string, @Body() dto: UpdateProductDto) {
-    // dto.type = STOCK
-    return this.productService.updateStock(skuId, dto);
+  async updateStock(
+    @Param('skuId') skuId: string,
+    @Body() dto: UpdateProductDto,
+  ) {
+    try {
+      return await this.productService.updateStock(skuId, dto);
+    } catch (error: any) {
+      if (error.status && error.status < 500) throw error;
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengupdate stok',
+      );
+    }
   }
 
   @Delete('products/:id')
@@ -239,7 +278,13 @@ export class ProductController {
   @ApiNotFoundResponse({ description: 'Produk tidak ditemukan' })
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  remove(@Param('id') id: string) {
-    return this.productService.remove(id);
+  async remove(@Param('id') id: string) {
+    try {
+      return await this.productService.remove(id);
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal menghapus produk',
+      );
+    }
   }
 }

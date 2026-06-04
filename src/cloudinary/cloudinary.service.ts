@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { type UploadApiOptions, type UploadApiResponse } from 'cloudinary';
 import { Readable } from 'node:stream';
 import { configureCloudinary } from '../helper/cloudinary.config';
@@ -25,7 +29,10 @@ export class CloudinaryService {
           (error, result) => {
             if (error || !result) {
               console.log('Cloudinary error (direct):', error);
-              console.log('Cloudinary error keys:', error ? Object.keys(error) : null);
+              console.log(
+                'Cloudinary error keys:',
+                error ? Object.keys(error) : null,
+              );
 
               // Kadang detail ada di response/headers
               const anyErr = error as any;

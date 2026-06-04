@@ -1,19 +1,25 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@prisma/client/wasm';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
-  ) { }
+  ) {}
   async registerAdmin(createAuthDto: CreateAuthDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: createAuthDto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: createAuthDto.email },
+    });
     if (existing) throw new BadRequestException('Email already registered');
 
     const passwordHash = await bcrypt.hash(createAuthDto.password, 10);
@@ -34,11 +40,13 @@ export class AuthService {
     //   role: user.role,
     // });
 
-    return { user,};
+    return { user };
   }
 
   async registerCustomer(createAuthDto: CreateAuthDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: createAuthDto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: createAuthDto.email },
+    });
     if (existing) throw new BadRequestException('Email already registered');
 
     const passwordHash = await bcrypt.hash(createAuthDto.password, 10);
@@ -59,7 +67,7 @@ export class AuthService {
     //   role: user.role,
     // });
 
-    return { user,};
+    return { user };
   }
 
   async login(loginDto: CreateAuthDto) {
@@ -90,8 +98,17 @@ export class AuthService {
     };
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async findAllUsers() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   findOne(id: number) {
