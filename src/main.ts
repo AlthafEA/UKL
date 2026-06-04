@@ -10,7 +10,7 @@ async function bootstrap() {
   // main.ts
   app.enableCors({
     origin: (origin, callback) => {
-      const allowed = ['https://ukl-4-fe.vercel.app', 'http://localhost:3000'];
+      const allowed = ['https://ukl-4-fe.vercel.app', 'http://localhost:3000','https://ukl-4-pketeo7zr-sehunbolt-7017s-projects.vercel.app/'];
       if (!origin) return callback(null, true); // non-browser requests
       if (allowed.includes(origin)) return callback(null, true);
       return callback(new Error(`Origin ${origin} not allowed by CORS`), false);
