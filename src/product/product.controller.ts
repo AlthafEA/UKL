@@ -41,12 +41,14 @@ type UploadedFile = {
 };
 
 @ApiTags('Products')
-@Controller()
+@Controller('products') // Berikan global prefix untuk semua rute di dalam controller ini
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   // -------- PUBLIC --------
-  @Get('products')
+
+  // Menangani: GET /products
+  @Get()
   @ApiOperation({
     summary: 'Daftar produk (Publik)',
     description:
@@ -64,7 +66,9 @@ export class ProductController {
     }
   }
 
-  @Get('/products/all')
+  // Menangani: GET /products/all
+  // Rute statis wajib diletakkan DI ATAS rute dinamis seperti ':slug' atau ':id'
+  @Get('all')
   @ApiOperation({
     summary: 'Daftar semua produk dan kategori aktif (Publik)',
     description:
@@ -83,7 +87,8 @@ export class ProductController {
     }
   }
 
-  @Get('products/:slug')
+  // Menangani: GET /products/:slug
+  @Get(':slug')
   @ApiOperation({
     summary: 'Detail produk (Publik)',
     description:
@@ -110,7 +115,9 @@ export class ProductController {
   }
 
   // -------- ADMIN --------
-  @Post('products')
+
+  // Menangani: POST /products
+  @Post()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth('JWT-auth')
@@ -137,7 +144,8 @@ export class ProductController {
     }
   }
 
-  @Patch('products/:id')
+  // Menangani: PATCH /products/:id
+  @Patch(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth('JWT-auth')
@@ -163,7 +171,8 @@ export class ProductController {
     }
   }
 
-  @Post('products/:id/image')
+  // Menangani: POST /products/:id/image
+  @Post(':id/image')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth('JWT-auth')
@@ -208,64 +217,8 @@ export class ProductController {
     }
   }
 
-  @Patch('skus/:id')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Update SKU/varian (Admin)',
-    description:
-      'Mengupdate warna dan/atau ukuran SKU. Gunakan type=SKU di body.',
-  })
-  @ApiParam({ name: 'id', description: 'ID SKU (CUID)' })
-  @ApiOkResponse({ description: 'SKU berhasil diupdate' })
-  @ApiNotFoundResponse({ description: 'SKU tidak ditemukan' })
-  @ApiBadRequestResponse({ description: 'Validasi gagal atau SKU duplikat' })
-  @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
-  @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  async updateSku(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    try {
-      return await this.productService.updateSku(id, dto);
-    } catch (error: any) {
-      if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(
-        error?.message || 'Gagal mengupdate SKU',
-      );
-    }
-  }
-
-  @Patch('inventories/:skuId')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('ADMIN')
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Update stok inventory (Admin)',
-    description:
-      'Mengupdate jumlah stok untuk SKU tertentu. Gunakan type=STOCK di body.',
-  })
-  @ApiParam({ name: 'skuId', description: 'ID SKU (CUID)' })
-  @ApiOkResponse({ description: 'Stok berhasil diupdate' })
-  @ApiNotFoundResponse({ description: 'SKU tidak ditemukan' })
-  @ApiBadRequestResponse({
-    description: 'type harus STOCK dan stock wajib diisi',
-  })
-  @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
-  @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
-  async updateStock(
-    @Param('skuId') skuId: string,
-    @Body() dto: UpdateProductDto,
-  ) {
-    try {
-      return await this.productService.updateStock(skuId, dto);
-    } catch (error: any) {
-      if (error.status && error.status < 500) throw error;
-      throw new InternalServerErrorException(
-        error?.message || 'Gagal mengupdate stok',
-      );
-    }
-  }
-
-  @Delete('products/:id')
+  // Menangani: DELETE /products/:id
+  @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth('JWT-auth')
@@ -286,5 +239,33 @@ export class ProductController {
         error?.message || 'Gagal menghapus produk',
       );
     }
+  }
+
+  // NOTE: Rute luar konteks produk di bawah ini (skus & inventories) 
+  // idealnya dipindahkan ke SkuController dan InventoryController terpisah.
+  // Namun, demi fungsionalitas, rute ini diubah agar rute absolutnya tetap sama.
+
+  // Menangani: PATCH /products/skus/:id
+  @Patch('skus/:id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Update SKU/varian (Admin)',
+  })
+  async updateSku(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productService.updateSku(id, dto);
+  }
+
+  // Menangani: PATCH /products/inventories/:skuId
+  @Patch('inventories/:skuId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Update stok inventory (Admin)',
+  })
+  async updateStock(@Param('skuId') skuId: string, @Body() dto: UpdateProductDto) {
+    return this.productService.updateStock(skuId, dto);
   }
 }
