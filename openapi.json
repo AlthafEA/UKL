@@ -1,0 +1,953 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Basic welcome message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "Hello World!"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Root endpoint",
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/auth/users": {
+      "get": {
+        "description": "Mengambil daftar seluruh pengguna. Hanya bisa diakses oleh Admin.",
+        "operationId": "AuthController_findAllUsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil daftar pengguna",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string",
+                        "example": "CUSTOMER"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Daftar semua pengguna (Admin)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/register/admin": {
+      "post": {
+        "description": "Membuat akun admin baru dengan email dan password. Hanya bisa diakses oleh Admin.",
+        "operationId": "AuthController_createAdmin",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Registrasi berhasil"
+          },
+          "400": {
+            "description": "Email sudah terdaftar atau validasi gagal"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Registrasi admin baru (Admin)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/register/customer": {
+      "post": {
+        "description": "Membuat akun pelanggan baru dengan email dan password. Email harus unik.",
+        "operationId": "AuthController_createCustomer",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Registrasi berhasil"
+          },
+          "400": {
+            "description": "Email sudah terdaftar atau validasi gagal"
+          }
+        },
+        "summary": "Registrasi pelanggan baru",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Autentikasi dengan email dan password. Mengembalikan JWT access token.",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Login berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIs..."
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "clxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "user@example.com"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "ADMIN"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Email atau password salah"
+          }
+        },
+        "summary": "Login pengguna",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/products": {
+      "get": {
+        "description": "Mengambil daftar produk aktif dengan pagination dan filter berdasarkan kategori, warna, ukuran, dan rentang harga.",
+        "operationId": "ProductController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil daftar produk"
+          }
+        },
+        "summary": "Daftar produk (Publik)",
+        "tags": [
+          "Products"
+        ]
+      },
+      "post": {
+        "description": "Membuat produk baru (type=PRODUCT) atau menambah varian/SKU ke produk yang sudah ada (type=SKU). Hanya Admin yang bisa mengakses.",
+        "operationId": "ProductController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Produk/SKU berhasil dibuat"
+          },
+          "400": {
+            "description": "Validasi gagal atau slug/SKU duplikat"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Buat produk atau SKU baru (Admin)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/products/all": {
+      "get": {
+        "description": "Mengambil semua produk aktif dan kategori aktif tanpa filter.",
+        "operationId": "ProductController_listAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil semua produk dan kategori"
+          }
+        },
+        "summary": "Daftar semua produk dan kategori aktif (Publik)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/products/{slug}": {
+      "get": {
+        "description": "Mengambil detail produk berdasarkan slug, termasuk SKU dan inventory.",
+        "operationId": "ProductController_detail",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "description": "Slug produk",
+            "schema": {
+              "example": "sepatu-running-hitam"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil detail produk"
+          },
+          "404": {
+            "description": "Produk tidak ditemukan atau tidak aktif"
+          }
+        },
+        "summary": "Detail produk (Publik)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/products/{id}": {
+      "patch": {
+        "description": "Mengupdate data produk. Gunakan type=PRODUCT atau kosongkan type.",
+        "operationId": "ProductController_updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID produk (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Produk berhasil diupdate"
+          },
+          "400": {
+            "description": "Validasi gagal atau slug duplikat"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "Produk tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update produk (Admin)",
+        "tags": [
+          "Products"
+        ]
+      },
+      "delete": {
+        "description": "Menghapus produk beserta semua SKU dan inventory terkait.",
+        "operationId": "ProductController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID produk (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Produk berhasil dihapus"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "Produk tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Hapus produk (Admin)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/products/{id}/image": {
+      "post": {
+        "description": "Upload gambar produk ke Cloudinary. File dikirim sebagai multipart/form-data.",
+        "operationId": "ProductController_uploadImage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID produk (CUID)",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "File gambar produk",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File gambar (JPG/PNG)"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gambar berhasil diupload"
+          },
+          "400": {
+            "description": "File tidak ditemukan"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "Produk tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Upload gambar produk (Admin)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/skus/{id}": {
+      "patch": {
+        "description": "Mengupdate warna dan/atau ukuran SKU. Gunakan type=SKU di body.",
+        "operationId": "ProductController_updateSku",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID SKU (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SKU berhasil diupdate"
+          },
+          "400": {
+            "description": "Validasi gagal atau SKU duplikat"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "SKU tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update SKU/varian (Admin)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/inventories/{skuId}": {
+      "patch": {
+        "description": "Mengupdate jumlah stok untuk SKU tertentu. Gunakan type=STOCK di body.",
+        "operationId": "ProductController_updateStock",
+        "parameters": [
+          {
+            "name": "skuId",
+            "required": true,
+            "in": "path",
+            "description": "ID SKU (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stok berhasil diupdate"
+          },
+          "400": {
+            "description": "type harus STOCK dan stock wajib diisi"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "SKU tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update stok inventory (Admin)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/categories": {
+      "get": {
+        "description": "Mengambil daftar kategori dengan pagination dan filter. Endpoint publik.",
+        "operationId": "CategoryController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil daftar kategori"
+          }
+        },
+        "summary": "Daftar semua kategori",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "post": {
+        "description": "Membuat kategori baru. Hanya bisa diakses oleh Admin.",
+        "operationId": "CategoryController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Kategori berhasil dibuat"
+          },
+          "400": {
+            "description": "Slug sudah ada atau validasi gagal"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Buat kategori baru (Admin)",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/categories/all": {
+      "get": {
+        "description": "Mengambil semua kategori aktif tanpa filter.",
+        "operationId": "CategoryController_listAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil semua kategori"
+          }
+        },
+        "summary": "Daftar semua kategori aktif (Publik)",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "description": "Mengambil detail satu kategori berdasarkan ID.",
+        "operationId": "CategoryController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID kategori (CUID)",
+            "schema": {
+              "example": "clxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil detail kategori"
+          },
+          "404": {
+            "description": "Kategori tidak ditemukan"
+          }
+        },
+        "summary": "Detail kategori",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "patch": {
+        "description": "Mengupdate data kategori. Hanya bisa diakses oleh Admin.",
+        "operationId": "CategoryController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID kategori (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kategori berhasil diupdate"
+          },
+          "400": {
+            "description": "Slug sudah ada atau validasi gagal"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "Kategori tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update kategori (Admin)",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "delete": {
+        "description": "Menghapus kategori berdasarkan ID. Hanya bisa diakses oleh Admin.",
+        "operationId": "CategoryController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID kategori (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kategori berhasil dihapus"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "Kategori tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Hapus kategori (Admin)",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/checkout": {
+      "post": {
+        "description": "Membuat pesanan baru. Stok akan berkurang secara atomik. Jika shippingType=DELIVERY, wajib isi district dan shippingAddress. Pesanan yang tidak dibayar dalam 1 jam akan otomatis dibatalkan.",
+        "operationId": "OrderController_checkout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Pesanan berhasil dibuat"
+          },
+          "400": {
+            "description": "Validasi gagal, stok tidak cukup, atau SKU tidak ditemukan"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Checkout / buat pesanan baru",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders": {
+      "get": {
+        "description": "Mengambil daftar pesanan milik user yang sedang login, dengan pagination dan filter status.",
+        "operationId": "OrderController_listMy",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil daftar pesanan"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Daftar pesanan saya",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "description": "Mengambil detail pesanan berdasarkan ID. Hanya bisa melihat pesanan milik sendiri.",
+        "operationId": "OrderController_getMy",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID pesanan (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil detail pesanan"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Pesanan bukan milik user ini"
+          },
+          "404": {
+            "description": "Pesanan tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Detail pesanan saya",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/payment-proof": {
+      "post": {
+        "description": "Upload bukti transfer untuk pesanan yang masih PENDING. Setelah upload, status pesanan berubah menjadi WAITING_CONFIRMATION. File dikirim sebagai multipart/form-data.",
+        "operationId": "OrderController_uploadProof",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID pesanan (CUID)",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "File bukti pembayaran dan catatan opsional",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File bukti transfer (JPG/PNG)"
+                  },
+                  "note": {
+                    "type": "string",
+                    "description": "Catatan opsional",
+                    "example": "Transfer via BCA a/n Budi"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bukti pembayaran berhasil diupload"
+          },
+          "400": {
+            "description": "Pesanan bukan PENDING atau bukti sudah diupload"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Pesanan bukan milik user ini"
+          },
+          "404": {
+            "description": "Pesanan tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Upload bukti pembayaran",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/receipt": {
+      "get": {
+        "operationId": "OrderController_downloadReceipt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID order",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Download struk pembelian (PDF)",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/status": {
+      "patch": {
+        "description": "Admin mengubah status pesanan. Transisi yang diizinkan:\n- PENDING → CANCELLED\n- WAITING_CONFIRMATION → PAID / CANCELLED\n- PAID → SHIPPED\n\nJika dibatalkan, stok akan dikembalikan secara otomatis.",
+        "operationId": "OrderController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID pesanan (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status pesanan berhasil diupdate"
+          },
+          "400": {
+            "description": "Transisi status tidak valid"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Hanya Admin yang bisa mengakses"
+          },
+          "404": {
+            "description": "Pesanan tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update status pesanan (Admin)",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/{id}": {
+      "delete": {
+        "description": "Menghapus pesanan berdasarkan ID. Bisa diakses oleh Customer dan Admin.",
+        "operationId": "OrderController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID pesanan (CUID)",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pesanan berhasil dihapus"
+          },
+          "401": {
+            "description": "Token tidak valid atau tidak ada"
+          },
+          "403": {
+            "description": "Tidak memiliki akses"
+          },
+          "404": {
+            "description": "Pesanan tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Hapus pesanan",
+        "tags": [
+          "Orders"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "UKL Backend API",
+    "description": "REST API untuk aplikasi e-commerce UKL. Dibangun dengan NestJS + Prisma + MySQL. Gunakan endpoint `/auth/login` untuk mendapatkan JWT token, lalu klik tombol **Authorize** di atas dan masukkan token.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Registrasi & Login pengguna"
+    },
+    {
+      "name": "Categories",
+      "description": "Manajemen kategori produk"
+    },
+    {
+      "name": "Products",
+      "description": "Manajemen produk, SKU, dan inventory"
+    },
+    {
+      "name": "Orders",
+      "description": "Checkout, pembayaran, dan manajemen pesanan"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Masukkan JWT token yang didapat dari endpoint login"
+      }
+    },
+    "schemas": {}
+  }
+}
