@@ -9,7 +9,12 @@ async function bootstrap() {
 
   // main.ts
   app.enableCors({
-    origin: 'https://ukl-4-fe.vercel.app, http://localhost:3000', // <-- Ganti dengan URL frontend Anda
+    origin: (origin, callback) => {
+      const allowed = ['https://ukl-4-fe.vercel.app', 'http://localhost:3000'];
+      if (!origin) return callback(null, true); // non-browser requests
+      if (allowed.includes(origin)) return callback(null, true);
+      return callback(new Error(`Origin ${origin} not allowed by CORS`), false);
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'], // ← Explicit headers
