@@ -97,6 +97,28 @@ export class OrderController {
     }
   }
 
+  @Get('orders/admin')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Daftar semua pesanan (Admin)',
+    description:
+      'Mengambil seluruh pesanan toko dengan pagination dan filter status.',
+  })
+  @ApiOkResponse({ description: 'Berhasil mengambil daftar pesanan' })
+  @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
+  @ApiForbiddenResponse({ description: 'Hanya Admin yang bisa mengakses' })
+  async listAllAdmin(@Query() query: QueryOrderDto) {
+    try {
+      return await this.orderService.listAllOrders(query);
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        error?.message || 'Gagal mengambil daftar pesanan',
+      );
+    }
+  }
+
   @Get('orders/:id')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
@@ -112,7 +134,7 @@ export class OrderController {
   @ApiUnauthorizedResponse({ description: 'Token tidak valid atau tidak ada' })
   async getMy(@Req() req: any, @Param('id') id: string) {
     try {
-      return await this.orderService.getMyOrder(req.user.id, id);
+      return await this.orderService.getMyOrder(req.user.id, id, req.user.role);
     } catch (error: any) {
       if (error.status && error.status < 500) throw error;
       throw new InternalServerErrorException(

@@ -169,18 +169,50 @@ export class OrderService {
     return { page, limit, total, items };
   }
 
-  async getMyOrder(userId: string, orderId: string) {
+  async listAllOrders(query: QueryOrderDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 100;
+    const skip = (page - 1) * limit;
+
+    const where: { status?: OrderStatus } = {};
+    if (query.status) where.status = query.status;
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          items: {
+            include: {
+              sku: { include: { product: true } },
+            },
+          },
+          user: { select: { id: true, email: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return { page, limit, total, items };
+  }
+
+  async getMyOrder(userId: string, orderId: string, userRole?: Role) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
         items: {
           include: { sku: { include: { product: true } } },
         },
+        user: { select: { id: true, email: true, name: true } },
       },
     });
 
     if (!order) throw new NotFoundException('Order not found');
-    if (order.userId !== userId) throw new ForbiddenException('Forbidden');
+    if (order.userId !== userId && userRole !== Role.ADMIN) {
+      throw new ForbiddenException('Forbidden');
+    }
 
     return order;
   }
